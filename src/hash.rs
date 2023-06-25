@@ -19,13 +19,15 @@ pub(crate) fn hasher(path: &Path) -> io::Result<Hash> {
 	let mut buffer = vec![0; bsize];
 
 	loop {
-        let bytes_read = f.read(&mut buffer)?;
-        if bytes_read == 0 {
-            break;
+        match f.read(&mut buffer) {
+            Ok(0) => return Ok(hasher.finalize()),
+            Ok(n) => {
+                hasher.update(&buffer[..n]);
+            },
+            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => continue,
+			Err(e) => return Err(e)
         }
-        hasher.update_rayon(&buffer[..bytes_read]);
-    };
-	Ok(hasher.finalize())
+    }
 }
 
 /// Buffer Size
