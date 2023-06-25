@@ -19,32 +19,32 @@ pub(crate) fn hasher(path: &Path) -> io::Result<Hash> {
 	let mut buffer = vec![0; bsize];
 
 	loop {
-        match f.read(&mut buffer) {
-            Ok(0) => return Ok(hasher.finalize()),
-            Ok(n) => {
-                hasher.update(&buffer[..n]);
-            },
-            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => continue,
+		match f.read(&mut buffer) {
+			Ok(0) => return Ok(hasher.finalize()),
+			Ok(n) => {
+				hasher.update_rayon(&buffer[..n]);
+			},
+			Err(ref e) if e.kind() == io::ErrorKind::Interrupted => continue,
 			Err(e) => return Err(e)
-        }
-    }
+		}
+	}
 }
 
 /// Buffer Size
 /// 
 /// Selects a buffer size depending on the file size.
 fn buffer_size(file_size: u64) -> usize {
-    const KB: u64 = 1024;
-    const MB: u64 = 1024 * KB;
-    const GB: u64 = 1024 * MB;
+	const KB: u64 = 1024;
+	const MB: u64 = 1024 * KB;
+	const GB: u64 = 1024 * MB;
 
-    if file_size <= 512 * MB {
-        128 * KB as usize
+	if file_size <= 512 * MB {
+		64 * KB as usize
 	} else if file_size <= 2 * GB {
-		32 * MB as usize
-    } else if file_size <= 6 * GB {
-        192 * MB as usize
-    } else {
+		16 * MB as usize
+	} else if file_size <= 6 * GB {
+		128 * MB as usize
+	} else {
         512 * MB as usize
     }
 }
