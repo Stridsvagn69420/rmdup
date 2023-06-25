@@ -27,7 +27,7 @@ pub(crate) fn help_message(p: &mut Printer) {
 	// Flags
 	.println("FLAGS:", Colors::CyanBright)
 	.print("-V, --version: ", Colors::Cyan).writeln("Prints metadata of this tool")
-	.print("-h, --help:", Colors::Cyan).writeln("Prints this help message");
+	.print("-h, --help: ", Colors::Cyan).writeln("Prints this help message");
 
 }
 

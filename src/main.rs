@@ -1,28 +1,41 @@
 use std::env;
+use std::path::Path;
 use std::process::ExitCode;
-use kagero::printer::Printer;
+use kagero::printer::{Printer, Colors};
+mod hash;
 mod help;
 
 fn main() -> ExitCode {
-	let mut prnt = Printer::default();
+	let mut p = Printer::default();
 	let args: Vec<String> = env::args().collect();
 
-	// Get file via command-line arguments
+	// Get file via command-line argument
 	let Some(file) = args.get(1) else {
-		help::help_message(&mut prnt);
+		help::help_message(&mut p);
 		return ExitCode::FAILURE;
 	};
 
-	// Flag handle
-	return match file.as_str() {
+	// Flag handler
+	match file.as_str() {
 		"-h" | "--help" => {
-			help::help_message(&mut prnt);
+			help::help_message(&mut p);
 			ExitCode::SUCCESS
 		},
 		"-V" | "--version" => {
-			help::version(&mut prnt);
+			help::version(&mut p);
 			ExitCode::SUCCESS
 		},
-		_ => ExitCode::SUCCESS // TODO: Replace this with function call that does the acutal logic.
+		_ => {
+			// Convert to Path
+			let filepath = Path::new(file);
+			if !filepath.exists() || !filepath.is_file() {
+				p.error(file, Colors::RedBright).errorln(" does not exist or is not a file!", Colors::Red);
+				return ExitCode::FAILURE;
+			}
+
+			println!("{:#?}", hash::hasher(filepath)); // TODO: Do more stuff. This is just a test atm.
+
+			ExitCode::SUCCESS
+		}
 	}
 }

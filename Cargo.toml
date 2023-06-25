@@ -12,10 +12,10 @@ documentation = "https://github.com/Stridsvagn69420/rmdup"
 categories = ["command-line-utilities", "filesystem"]
 keywords = ["coreutils", "command-line", "duplicate"]
 exclude = [
-    ".github/",
-    ".vscode/",
-    ".git/",
-    "target/"
+	".github/",
+	".vscode/",
+	".git/",
+	"target/"
 ]
 
 [dependencies]
