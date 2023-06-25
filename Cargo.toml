@@ -5,13 +5,25 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Stridsvagn69420 (https://github.com/Stridsvagn69420)"]
 readme = "README.md"
+build = "build.rs"
 license = "MIT"
 repository = "https://github.com/Stridsvagn69420/rmdup"
 documentation = "https://github.com/Stridsvagn69420/rmdup"
 categories = ["command-line-utilities", "filesystem"]
 keywords = ["coreutils", "command-line", "duplicate"]
-
+exclude = [
+    ".github/",
+    ".vscode/",
+    ".git/",
+    "target/"
+]
 
 [dependencies]
 blake3 = "1.4"
 kagero = { version = "0.4", default-features = false, features = ["printer"] }
+
+[profile.release]
+lto = true
+strip = true
+debug = false
+opt-level = 3
