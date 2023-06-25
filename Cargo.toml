@@ -1,9 +1,17 @@
 [package]
 name = "rmdup"
+description = "Simple tool for removing duplicate files"
 version = "0.1.0"
 edition = "2021"
+authors = ["Stridsvagn69420 (https://github.com/Stridsvagn69420)"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/Stridsvagn69420/rmdup"
+documentation = "https://github.com/Stridsvagn69420/rmdup"
+categories = ["command-line-utilities", "filesystem"]
+keywords = ["coreutils", "command-line", "duplicate"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 blake3 = "1.4"
+kagero = { version = "0.4", default-features = false, features = ["printer"] }
