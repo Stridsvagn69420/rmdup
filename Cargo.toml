@@ -19,7 +19,7 @@ exclude = [
 ]
 
 [dependencies]
-blake3 = "1.4"
+blake3 = { version = "1.4", features = ["rayon"] }
 kagero = { version = "0.4", default-features = false, features = ["printer"] }
 
 [profile.release]

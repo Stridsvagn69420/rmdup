@@ -23,7 +23,7 @@ pub(crate) fn hasher(path: &Path) -> io::Result<Hash> {
         if bytes_read == 0 {
             break;
         }
-        hasher.update(&buffer[..bytes_read]);
+        hasher.update_rayon(&buffer[..bytes_read]);
     };
 	Ok(hasher.finalize())
 }
