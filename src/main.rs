@@ -1,4 +1,5 @@
 use std::env;
+use std::fs;
 use std::io::ErrorKind::{NotFound, PermissionDenied};
 use std::path::Path;
 use std::process::ExitCode;
@@ -35,41 +36,65 @@ fn main() -> ExitCode {
 				return ExitCode::FAILURE;
 			}
 
-            // List Files in CWD
-            let files = match dir::list_cwd() {
-                Ok(res) => res,
-                Err(ref e) if vec![NotFound, PermissionDenied].contains(&e.kind()) => {
-                    p.errorln("Could not access directory! Either the current directory does not exist anymore or is unreadable.", Colors::RedBright);
-                    return ExitCode::FAILURE;
-                },
-                Err(e) => {
-                    p.error("An unexpected error occured: ", Colors::Red)
-                    .errorln(e.kind().to_string().as_str(), Colors::RedBright);
-                    return ExitCode::FAILURE;
-                }
-            };
+			// List Files in CWD
+			let files = match dir::list_cwd() {
+				Ok(res) => res,
+				Err(ref e) if vec![NotFound, PermissionDenied].contains(&e.kind()) => {
+					p.errorln("Could not access directory! Either the current directory does not exist anymore or is unreadable.", Colors::RedBright);
+					return ExitCode::FAILURE;
+				},
+				Err(e) => {
+					p.error("An unexpected error occured: ", Colors::Red)
+					.errorln(e.kind().to_string().as_str(), Colors::RedBright);
+					return ExitCode::FAILURE;
+				}
+			};
 
+			// Create pseudo-path of input file in CWD and get hash of input file
+			let pseudo_input = files.0.join(filepath.file_name().unwrap());
+			let exists_in_cwd = pseudo_input.is_file();
+			let Ok(ihash) = hash::hasher(filepath) else {
+				p.error("Could not calculate BLAKE3 hash of ", Colors::Red)
+				.errorln(file, Colors::RedBright)
+				.errorln("The file is probably unreadable.", Colors::Red);
+				return ExitCode::FAILURE;
+			};
 
+			// Iterate over CWD files
+			p.print("Scanning ", Colors::Red)
+			.print(files.1.len().to_string().as_str(), Colors::RedBright)
+			.println(" files for possible duplicates...", Colors::Red);
 
-            // ---- TODO: Do more stuff. This is just a test atm. ----
-            // List files
-            println!("{:#?}", files);
+			for dupfile in files.1 {
+				p.println("----------------------------------------------", Colors::CyanBright);
+				let dupfile_name = String::from(dupfile.file_name().unwrap().to_string_lossy());
+				p.print("File: ", Colors::Blue)
+				.println(&dupfile_name, Colors::BlueBright);
 
-            let input = files.0.join(filepath.file_name().unwrap()); // Create path as if file was in cwd (I test with build.rs as the input file)
-            let current = files.1.get(1).unwrap().to_owned(); // Get a file's absolute path (build.rs is my 2nd file in the listing)
-            let ihash = hash::hasher(&input).unwrap();
-            let chash = hash::hasher(&current).unwrap();
-            println!("{:#?}", input);
-            println!("{:#?}", current);
-            println!("{:#?}", ihash);
-            println!("{:#?}", chash);
-            println!("{:#?}", current == input); // Compare the files' path.
-            println!("{:#?}", ihash == chash); // Also compare their hash value along with their path, like it has to do with every other file.
-            // This is used so that if the current file matches the input file, it won't be removed. The system only works like this for the current functionality!
+				// Get hash of file
+				let Ok(duphash) = hash::hasher(&dupfile) else {
+					p.errorln("Could not get BLAKE3 hash of file!", Colors::Red);
+					continue;
+				};
 
-            // Hash Test
-            println!("{:#?}", hash::hasher(filepath));
+				// Compare BLAKE3 hashes
+				if ihash == duphash {
+					if exists_in_cwd && pseudo_input == dupfile {
+						p.println("File is input file. Skipping...", Colors::Blue);
+					} else {
+						// Remove duplicate file
+						match fs::remove_file(dupfile) {
+							Ok(()) => p.println("Successfully removed duplicate!", Colors::MagentaBright),
+							Err(_) => p.println("Could not remove duplicate file!", Colors::RedBright)
+						};
+					}
+				} else {
+					p.println("Hash does not match. Skipping...", Colors::Cyan);
+				}
+			}
 
+			p.writeln("")
+			.println("All duplicate files have been removed!", Colors::Red);
 			ExitCode::SUCCESS
 		}
 	}

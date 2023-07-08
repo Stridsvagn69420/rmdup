@@ -8,7 +8,7 @@ use blake3::{Hash, Hasher};
 ///
 /// Gets the hash of a file by reading into a buffer.
 /// This is used so that files that are potentially ultra large can still be read without your RAM collapsing.
-pub(crate) fn hasher(path: &Path) -> io::Result<Hash> {
+pub(crate) fn hasher(path: impl AsRef<Path>) -> io::Result<Hash> {
 	// Open file and get metadata
 	let mut f = File::open(path)?;
 	let fsize = f.metadata()?.len();
@@ -45,6 +45,6 @@ fn buffer_size(file_size: u64) -> usize {
 	} else if file_size <= 6 * GB {
 		128 * MB as usize
 	} else {
-        512 * MB as usize
-    }
+		512 * MB as usize
+	}
 }
